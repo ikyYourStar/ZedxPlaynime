@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "942728827571",
+    "firebase_url": "https://zedxplay-5f18a-default-rtdb.firebaseio.com",
+    "project_id": "zedxplay-5f18a",
+    "storage_bucket": "zedxplay-5f18a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:942728827571:android:b139c80d5deedd535ed6c6",
+        "android_client_info": {
+          "package_name": "com.zedx.zedxplay"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "942728827571-sua1jif00opi26cpekefi2c30ob0ab74.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.zedx.zedxplay",
+            "certificate_hash": "6fd328a73df5de6e4fb781622c54775a3ad9e88a"
+          }
+        },
+        {
+          "client_id": "942728827571-p9ih8fv6er1qa7sc6i57darcm450bk9q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMQiQTYeK63lNRp26_VQA-bPqEKziRJnc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "942728827571-p9ih8fv6er1qa7sc6i57darcm450bk9q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
