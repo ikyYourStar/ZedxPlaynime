@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { App as CapacitorApp } from '@capacitor/app';
 import Navbar from "../components/Navbar";
 import HomeView from "../views/HomeView";
 import SearchView from "../views/SearchView";
@@ -12,6 +13,32 @@ export default function ZedxPlayApp() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeUrlId, setActiveUrlId] = useState("");
   const [activeChapterId, setActiveChapterId] = useState("");
+
+  // Logic Tombol Back Fisik Native Android (Capacitor)
+  useEffect(() => {
+    let lastTimeBackPress = 0;
+    const timePeriodToExit = 2000; // 2 detik untuk double tap
+
+    const backListener = CapacitorApp.addListener('backButton', () => {
+      if (view === "stream") {
+        setView("detail");
+      } else if (view === "detail" || view === "search") {
+        setView("home");
+      } else if (view === "home") {
+        const currentTime = new Date().getTime();
+        if (currentTime - lastTimeBackPress < timePeriodToExit) {
+          CapacitorApp.exitApp(); // Keluar dari apk
+        } else {
+          lastTimeBackPress = currentTime;
+          // Harus tap 2x cepat buat keluar
+        }
+      }
+    });
+
+    return () => {
+      backListener.remove();
+    };
+  }, [view]);
 
   const goHome = () => setView("home");
   
@@ -31,12 +58,16 @@ export default function ZedxPlayApp() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-[#e0e0e0] font-sans selection:bg-[#2a2a2a] selection:text-white">
-      <Navbar onGoHome={goHome} onSearch={goSearch} />
-      <main className="p-4 sm:p-8 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-black text-[#e0e0e0] font-sans selection:bg-[#10b981] selection:text-white">
+      {/* Navbar dan Search bar (Cuma Tampil Navbar biasa di Detail/Stream, tapi input Search hilang) */}
+      {view !== 'detail' && view !== 'stream' && (
+         <Navbar onGoHome={goHome} onSearch={goSearch} showSearch={view === "home" || view === "search"} />
+      )}
+      
+      <main className={view === "detail" ? "" : "max-w-7xl mx-auto"}>
         {view === "home" && <HomeView onOpenDetail={goDetail} />}
         {view === "search" && <SearchView query={searchQuery} onOpenDetail={goDetail} />}
-        {view === "detail" && <DetailView urlId={activeUrlId} onOpenStream={goStream} />}
+        {view === "detail" && <DetailView urlId={activeUrlId} onOpenStream={goStream} onBack={goHome} />}
         {view === "stream" && <StreamView chapterUrlId={activeChapterId} onBack={() => setView("detail")} />}
       </main>
     </div>
