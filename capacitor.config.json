@@ -2,5 +2,12 @@
   "appId": "com.zedx.zedxplay",
   "appName": "ZedxPlay",
   "webDir": "out",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "plugins": {
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "serverClientId": "942728827571-p9ih8fv6er1qa7sc6i57darcm450bk9q.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
+    }
+  }
 }
