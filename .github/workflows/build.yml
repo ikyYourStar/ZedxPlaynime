@@ -35,7 +35,7 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo $KEYSTORE_BASE64 | base64 --decode > my-release-key.jks
+          echo "$KEYSTORE_BASE64" | base64 --decode > my-release-key.jks
 
       - name: Install Capacitor & Build APK Release
         env:
