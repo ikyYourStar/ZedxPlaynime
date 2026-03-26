@@ -7,7 +7,7 @@ import HomeView from "../views/HomeView";
 import SearchView from "../views/SearchView";
 import DetailView from "../views/DetailView";
 import StreamView from "../views/StreamView";
-import { auth, googleProvider, signInWithPopup } from "../lib/firebase";
+import { auth, signInWithGoogleNative } from "../lib/firebase";
 
 export default function ZedxPlayApp() {
   const [view, setView] = useState<"home" | "search" | "detail" | "stream">("home");
@@ -62,7 +62,7 @@ export default function ZedxPlayApp() {
 
   const handleForceLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithGoogleNative();
     } catch (error) {
       console.error("Gagal Login:", error);
     }
