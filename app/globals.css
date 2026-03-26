@@ -2,21 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+html, body {
   background-color: #000000;
   color: #e0e0e0;
+  /* Fix lag scroll di mobile (Momentum Scrolling) */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
 }
 
+/* Musnahkan scrollbar putih jelek di seluruh aplikasi */
+::-webkit-scrollbar {
+  display: none;
+  width: 0px;
+  background: transparent;
+}
+
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Pastikan scroll horizontal juga gak ada garisnya */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #000000;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #222222;
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #333333;
+  display: none;
 }
