@@ -58,13 +58,13 @@ export default function ZedxPlayApp() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-[#e0e0e0] font-sans selection:bg-[#10b981] selection:text-white">
+    <div className="min-h-screen bg-black text-[#e0e0e0] font-sans selection:bg-[#10b981] selection:text-white no-scrollbar">
       {/* Navbar dan Search bar (Cuma Tampil Navbar biasa di Detail/Stream, tapi input Search hilang) */}
       {view !== 'detail' && view !== 'stream' && (
          <Navbar onGoHome={goHome} onSearch={goSearch} showSearch={view === "home" || view === "search"} />
       )}
       
-      <main className={view === "detail" ? "" : "max-w-7xl mx-auto"}>
+      <main className={view === "detail" ? "no-scrollbar" : "max-w-7xl mx-auto no-scrollbar"}>
         {view === "home" && <HomeView onOpenDetail={goDetail} />}
         {view === "search" && <SearchView query={searchQuery} onOpenDetail={goDetail} />}
         {view === "detail" && <DetailView urlId={activeUrlId} onOpenStream={goStream} onBack={goHome} />}
