@@ -11,8 +11,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="id" className="no-scrollbar">
-      <body className="antialiased no-scrollbar">{children}</body>
+    <html lang="id">
+      <body>
+        {/* INI KUNCI UTAMANYA: Pindahin sistem scroll dari layar HP ke dalam kotak Div ini */}
+        <div className="h-screen w-screen overflow-y-auto overflow-x-hidden no-scrollbar bg-black relative">
+          {children}
+        </div>
+      </body>
     </html>
   )
 }
