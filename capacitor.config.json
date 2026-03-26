@@ -1,0 +1,6 @@
+{
+  "appId": "com.zedx.zedxplay",
+  "appName": "ZedxPlay",
+  "webDir": "out",
+  "bundledWebRuntime": false
+}
