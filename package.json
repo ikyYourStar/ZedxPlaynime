@@ -14,7 +14,8 @@
     "next": "14.2.3",
     "@capacitor/core": "^6.0.0",
     "@capacitor/android": "^6.0.0",
-    "@capacitor/app": "^6.0.0"
+    "@capacitor/app": "^6.0.0",
+    "firebase": "^10.11.1"
   },
   "devDependencies": {
     "typescript": "^5",
