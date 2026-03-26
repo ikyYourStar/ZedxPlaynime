@@ -1,6 +1,8 @@
+import './globals.css'
+
 export const metadata = {
-  title: 'OLEDNIME',
-  description: 'Aplikasi Streaming Anime OLED Dark Mode',
+  title: 'ZedxPlay',
+  description: 'OLED Dark Mode Anime Streaming',
 }
 
 export default function RootLayout({
@@ -10,7 +12,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   )
 }
