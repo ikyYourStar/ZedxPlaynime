@@ -2,25 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ROOT & BODY SETUP */
 html, body {
   background-color: #000000;
   color: #e0e0e0;
-  /* Bikin scroll mulus di layar HP */
+  
+  /* HILANGIN FITUR TEXT SELECTION (COPY/PASTE) BIAR KAYA NATIVE APP */
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  
+  /* HILANGIN POPUP MENU BAWAAN ANDROID PAS LONG-PRESS */
+  -webkit-touch-callout: none !important;
+  
+  /* HILANGIN KEDIP WARNA BIRU/ABU PAS TOMBOL DITEKAN */
+  -webkit-tap-highlight-color: transparent !important;
+  
+  /* SMOOTH SCROLLING */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none;
 }
 
-/* MUSNAHKAN SCROLLBAR DI SEMUA ELEMEN SECARA PAKSA */
-* {
-  scrollbar-width: none !important; /* Buat Firefox engine */
-  -ms-overflow-style: none !important; /* Buat Edge/IE engine */
+/* PENGECUALIAN: KOLOM SEARCH HARUS BISA DIKETIK & DIBLOK TEKSNYA */
+input, textarea {
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
 }
 
-/* Tembak mati scrollbar Webkit (Chrome/Android WebView) */
-*::-webkit-scrollbar {
+/* MUSNAHKAN SCROLLBAR DI SELURUH ELEMEN (VERSI NUKLIR) */
+::-webkit-scrollbar {
   display: none !important;
   width: 0px !important;
   height: 0px !important;
   background: transparent !important;
   -webkit-appearance: none !important;
+}
+
+* {
+  -ms-overflow-style: none !important;  /* Buat Edge/IE */
+  scrollbar-width: none !important;     /* Buat Firefox */
+}
+
+/* MATIKAN SCROLLBAR DI BAGIAN SCROLL HORIZONTAL MOVIE & RECOMMENDED */
+.custom-scrollbar::-webkit-scrollbar {
+  display: none !important;
 }
