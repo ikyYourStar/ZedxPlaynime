@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithCredential, signOut } from "firebase/auth";
-import { GoogleAuth } from '@capacitor-community/google-auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCFLJKvR00BAAUnOsD_zHtev19Adi69TKQ",
