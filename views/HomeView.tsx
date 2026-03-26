@@ -46,7 +46,7 @@ export default function HomeView({ onOpenDetail }: { onOpenDetail: (urlId: strin
       <div className="w-full aspect-video bg-[#121212] rounded-b-3xl"></div>
       <div className="space-y-4 px-4 sm:px-8">
         <div className="w-40 h-6 bg-[#1a1a1a] rounded"></div>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-3 gap-4 sm:gap-5 px-1 sm:px-2">
           {[1,2,3,4,5,6].map(i => <div key={i} className="aspect-[3/4] bg-[#121212] rounded-md"></div>)}
         </div>
       </div>
@@ -65,13 +65,13 @@ export default function HomeView({ onOpenDetail }: { onOpenDetail: (urlId: strin
       {isScroll ? (
         <div className="flex overflow-x-auto gap-3 pb-4 custom-scrollbar snap-x">
           {data.map((anime: any) => (
-            <div key={anime.id} className="w-24 sm:w-28 flex-shrink-0 snap-start">
+            <div key={anime.id} className="w-28 sm:w-32 flex-shrink-0 snap-start">
               <AnimeCard anime={anime} onClick={() => onOpenDetail(anime.url)} />
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-3 gap-4 sm:gap-5 px-1 sm:px-2">
           {data.map((anime: any) => (
             <AnimeCard key={anime.id} anime={anime} onClick={() => onOpenDetail(anime.url)} />
           ))}
@@ -118,7 +118,7 @@ export default function HomeView({ onOpenDetail }: { onOpenDetail: (urlId: strin
 
       <div className="max-w-7xl mx-auto">
         <Section title="Latest Updates" data={latest} />
-        <Section title="Recommended" data={recommended} />
+        <Section title="Recommended" data={recommended} isScroll={true} />
         <Section title="Movies" data={movies} isScroll={true} />
       </div>
     </div>
