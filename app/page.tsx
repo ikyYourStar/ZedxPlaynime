@@ -63,7 +63,9 @@ export default function ZedxPlayApp() {
   const handleForceLogin = async () => {
     try {
       await signInWithGoogleNative();
-    } catch (error) {
+    } catch (error: any) {
+      // Munculin popup error ke layar biar kelihatan apa masalahnya
+      alert("Gagal Login: " + (error.message || JSON.stringify(error)));
       console.error("Gagal Login:", error);
     }
   };
