@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth, signOut } from "../lib/firebase";
+import { auth, signOutNative } from "../lib/firebase";
 
 export default function Navbar({ 
   onGoHome, 
@@ -21,7 +21,7 @@ export default function Navbar({
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await signOutNative();
     } catch (error) {
       console.error("Gagal Logout:", error);
     }
