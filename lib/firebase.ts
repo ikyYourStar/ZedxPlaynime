@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithCredential, signOut } from "firebase/auth";
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
@@ -13,11 +13,21 @@ const firebaseConfig = {
   measurementId: "G-VMCNFZ8WMJ"
 };
 
-const app = initializeApp(firebaseConfig);
+// Gembok inisialisasi Firebase biar gak double load
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApps()[0];
+}
+
 export const auth = getAuth(app);
 
+// FUNGSI GEMBOK SAKTI: Pastiin cuma jalan di Client/HP
+const isNative = () => typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNative;
+
 // Inisialisasi Native Plugin
-if (typeof window !== 'undefined') {
+if (isNative()) {
   GoogleAuth.initialize({
     clientId: '942728827571-p9ih8fv6er1qa7sc6i57darcm450bk9q.apps.googleusercontent.com',
     scopes: ['profile', 'email'],
@@ -27,6 +37,9 @@ if (typeof window !== 'undefined') {
 
 export const signInWithGoogleNative = async () => {
   try {
+    if (!isNative()) {
+       throw new Error("Plugin Native cuma jalan di HP cuy.");
+    }
     const googleUser = await GoogleAuth.signIn();
     const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
     const userCredential = await signInWithCredential(auth, credential);
@@ -39,8 +52,10 @@ export const signInWithGoogleNative = async () => {
 
 export const signOutNative = async () => {
   try {
-    await GoogleAuth.signOut();
-    await signOut(auth);
+     if (isNative()) {
+       await GoogleAuth.signOut();
+     }
+     await signOut(auth);
   } catch (error) {
     console.error("Gagal Logout:", error);
   }
