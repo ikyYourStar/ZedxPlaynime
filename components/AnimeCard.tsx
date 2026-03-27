@@ -1,3 +1,8 @@
+const handleImageError = (e: any) => {
+  e.target.onerror = null;
+  e.target.src = "/assets/placeholder/pc.png";
+};
+
 export default function AnimeCard({ anime, onClick }: { anime: any, onClick: () => void }) {
   return (
     <div onClick={onClick} className="group cursor-pointer flex flex-col gap-2 transform-gpu">
@@ -8,6 +13,7 @@ export default function AnimeCard({ anime, onClick }: { anime: any, onClick: () 
           className="object-cover w-full h-full opacity-90 group-hover:opacity-100 transition-opacity duration-300 transform-gpu" 
           loading="lazy" 
           decoding="async"
+          onError={handleImageError}
         />
         {anime.score && (
           <div className="absolute top-2 right-2">
