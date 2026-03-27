@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import AnimeCard from "../components/AnimeCard";
 
+// FUNGSI PLACEHOLDER SAKTI
+const handleImageError = (e: any) => {
+  e.target.onerror = null; // Biar gak looping
+  e.target.src = "/assets/placeholder/pc.png";
+};
+
 export default function HomeView({ onOpenDetail }: { onOpenDetail: (urlId: string) => void }) {
   const [latest, setLatest] = useState<any[]>([]);
   const [recommended, setRecommended] = useState<any[]>([]);
@@ -92,7 +98,12 @@ export default function HomeView({ onOpenDetail }: { onOpenDetail: (urlId: strin
       {heroAnime && (
         <div className="relative w-full aspect-video max-h-[500px] mb-8 cursor-pointer group" onClick={() => onOpenDetail(heroAnime.url)}>
           <div className="absolute inset-0 bg-black">
-            <img src={heroAnime.cover} alt="Hero" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
+            <img 
+              src={heroAnime.cover} 
+              alt="Hero" 
+              className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500" 
+              onError={handleImageError}
+            />
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
           
