@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
+import { PushNotifications } from '@capacitor/push-notifications';
 import Navbar from "../components/Navbar";
 import HomeView from "../views/HomeView";
 import SearchView from "../views/SearchView";
@@ -26,6 +28,50 @@ export default function ZedxPlayApp() {
       setAuthLoading(false);
     });
     return () => unsubscribe();
+  }, []);
+
+  // Setup Push Notifications (FCM)
+  useEffect(() => {
+    const initPushNotifications = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          let permStatus = await PushNotifications.checkPermissions();
+          
+          if (permStatus.receive === 'prompt') {
+            permStatus = await PushNotifications.requestPermissions();
+          }
+          
+          if (permStatus.receive !== 'granted') {
+            console.log('Izin Push Notification ditolak user');
+            return;
+          }
+
+          await PushNotifications.register();
+
+          PushNotifications.addListener('registration', (token) => {
+            console.log('FCM Token Berhasil: ' + token.value);
+            // Token ini bisa lu simpan ke database kalau mau kirim notif ke HP spesifik
+          });
+
+          PushNotifications.addListener('registrationError', (error: any) => {
+            console.log('FCM Registration Error: ' + JSON.stringify(error));
+          });
+
+          PushNotifications.addListener('pushNotificationReceived', (notification) => {
+            console.log('Notif masuk saat app dibuka: ' + JSON.stringify(notification));
+            alert(notification.title + '\n\n' + notification.body);
+          });
+
+          PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+            console.log('Notif di-klik user: ' + JSON.stringify(notification));
+          });
+        } catch (error) {
+          console.error("Gagal inisialisasi Push Notification:", error);
+        }
+      }
+    };
+
+    initPushNotifications();
   }, []);
 
   // Logic Tombol Back Fisik Native Android (Capacitor)
