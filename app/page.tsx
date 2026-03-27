@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { PushNotifications } from '@capacitor/push-notifications';
 import Navbar from "../components/Navbar";
@@ -17,11 +16,12 @@ export default function ZedxPlayApp() {
   const [activeUrlId, setActiveUrlId] = useState("");
   const [activeChapterId, setActiveChapterId] = useState("");
   
-  // State untuk Force Login
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Cek status login dari Firebase
+  // Gembok sakti check native platform
+  const isNativePlatform = () => typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNative;
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
@@ -30,10 +30,10 @@ export default function ZedxPlayApp() {
     return () => unsubscribe();
   }, []);
 
-  // Setup Push Notifications (FCM)
+  // Setup Push Notifications (Gembok Native)
   useEffect(() => {
     const initPushNotifications = async () => {
-      if (Capacitor.isNativePlatform()) {
+      if (isNativePlatform()) {
         try {
           let permStatus = await PushNotifications.checkPermissions();
           
@@ -42,7 +42,6 @@ export default function ZedxPlayApp() {
           }
           
           if (permStatus.receive !== 'granted') {
-            console.log('Izin Push Notification ditolak user');
             return;
           }
 
@@ -50,7 +49,6 @@ export default function ZedxPlayApp() {
 
           PushNotifications.addListener('registration', (token) => {
             console.log('FCM Token Berhasil: ' + token.value);
-            // Token ini bisa lu simpan ke database kalau mau kirim notif ke HP spesifik
           });
 
           PushNotifications.addListener('registrationError', (error: any) => {
@@ -58,7 +56,6 @@ export default function ZedxPlayApp() {
           });
 
           PushNotifications.addListener('pushNotificationReceived', (notification) => {
-            console.log('Notif masuk saat app dibuka: ' + JSON.stringify(notification));
             alert(notification.title + '\n\n' + notification.body);
           });
 
@@ -74,13 +71,14 @@ export default function ZedxPlayApp() {
     initPushNotifications();
   }, []);
 
-  // Logic Tombol Back Fisik Native Android (Capacitor)
+  // Logic Tombol Back (Gembok Native)
   useEffect(() => {
+    if (!isNativePlatform()) return;
+
     let lastTimeBackPress = 0;
-    const timePeriodToExit = 2000; // 2 detik untuk double tap
+    const timePeriodToExit = 2000;
 
     const backListener = CapacitorApp.addListener('backButton', () => {
-      // Kalau user di layar Force Login dan pencet back, langsung keluar APK
       if (!user) {
          CapacitorApp.exitApp();
          return;
@@ -93,10 +91,9 @@ export default function ZedxPlayApp() {
       } else if (view === "home") {
         const currentTime = new Date().getTime();
         if (currentTime - lastTimeBackPress < timePeriodToExit) {
-          CapacitorApp.exitApp(); // Keluar dari apk
+          CapacitorApp.exitApp();
         } else {
           lastTimeBackPress = currentTime;
-          // Harus tap 2x cepat buat keluar
         }
       }
     });
@@ -108,9 +105,12 @@ export default function ZedxPlayApp() {
 
   const handleForceLogin = async () => {
     try {
+      if (!isNativePlatform()) {
+         alert("Login Native cuma jalan di HP cuy.");
+         return;
+      }
       await signInWithGoogleNative();
     } catch (error: any) {
-      // Munculin popup error ke layar biar kelihatan apa masalahnya
       alert("Gagal Login: " + (error.message || JSON.stringify(error)));
       console.error("Gagal Login:", error);
     }
@@ -133,7 +133,6 @@ export default function ZedxPlayApp() {
     setView("stream");
   };
 
-  // Layar Loading sebelum ngecek status login
   if (authLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -142,7 +141,6 @@ export default function ZedxPlayApp() {
     );
   }
 
-  // LAYAR FORCE LOGIN (Muncul kalau belum login)
   if (!user) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 selection:bg-[#10b981] selection:text-white">
@@ -168,10 +166,8 @@ export default function ZedxPlayApp() {
     );
   }
 
-  // TAMPILAN UTAMA (Hanya muncul kalau sukses login)
   return (
     <div className="min-h-screen bg-black text-[#e0e0e0] font-sans selection:bg-[#10b981] selection:text-white no-scrollbar">
-      {/* Navbar dan Search bar (Cuma Tampil Navbar biasa di Detail/Stream, tapi input Search hilang) */}
       {view !== 'detail' && view !== 'stream' && (
          <Navbar onGoHome={goHome} onSearch={goSearch} showSearch={view === "home" || view === "search"} />
       )}
