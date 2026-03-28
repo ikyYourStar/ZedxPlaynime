@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { api } from "../lib/api";
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 
 export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: string, onBack: () => void }) {
   const [stream, setStream] = useState<any>(null);
@@ -84,8 +85,11 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
       try {
         await playerContainer?.requestFullscreen();
         setIsFullscreen(true);
-        if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
-          await window.screen.orientation.lock("landscape");
+        try {
+          // Paksa layar jadi Landscape pakai Plugin Native Capacitor
+          await ScreenOrientation.lock({ orientation: 'landscape' });
+        } catch (err) {
+          console.log("Plugin ScreenOrientation gagal jalan:", err);
         }
       } catch (err) {
         console.error("Gagal fullscreen atau putar layar:", err);
@@ -94,8 +98,11 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
       try {
         await document.exitFullscreen();
         setIsFullscreen(false);
-        if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
-          window.screen.orientation.unlock();
+        try {
+          // Lepas paksaan, balik ke Portrait pakai Plugin Native Capacitor
+          await ScreenOrientation.unlock();
+        } catch (err) {
+          console.log("Plugin ScreenOrientation gagal unlock:", err);
         }
       } catch (err) {
         console.error("Gagal keluar fullscreen:", err);
@@ -184,7 +191,8 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
           <video 
             ref={videoRef}
             src={stream.selectedVideo.link} 
-            className="w-full h-full object-contain relative z-10"
+            poster="/assets/icons/loading_bg.png" 
+            className="w-full h-full object-contain relative z-10 bg-black"
             onTimeUpdate={handleTimeUpdate}
             onEnded={() => setIsPlaying(false)}
             onPlay={() => { setIsPlaying(true); setIsVideoLoading(false); }}
@@ -195,12 +203,12 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
             controls={false} // MATIKAN CONTROLS BAWAAN BROWSER
           ></video>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[#666666] relative z-10">
+          <div className="w-full h-full flex items-center justify-center text-[#666666] relative z-10 bg-black">
             Sumber video resolusi ini tidak tersedia.
           </div>
         )}
 
-        {/* LOADING BUFFFERING (Balik pakai spinner murni, logo abu gede ngawur DIBUANG) */}
+        {/* LOADING BUFFFERING */}
         {isVideoLoading && stream.selectedVideo && (
            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
              <div className="w-12 h-12 border-4 border-[#10b981] border-t-transparent rounded-full animate-spin"></div>
@@ -225,7 +233,7 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
               )}
             </div>
 
-            {/* Center Play/Pause/Skip Controls (Sekarang beneran di TENGAH layar video) */}
+            {/* Center Play/Pause/Skip Controls */}
             <div className="flex-1 flex items-center justify-center w-full">
               {!isVideoLoading && (
                 <div className="flex items-center justify-center gap-12 sm:gap-20">
@@ -244,7 +252,7 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
               )}
             </div>
 
-            {/* Bottom Control Bar (Mirip referensi screenshot) */}
+            {/* Bottom Control Bar */}
             <div className="w-full pb-1 relative">
               
               {/* Text Waktu & Setting di atas Progress Bar */}
@@ -352,27 +360,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
            <button className="flex items-center gap-2 bg-[#1a1a1a] hover:bg-[#222] text-[#ccc] text-[11px] font-medium py-2 px-4 rounded-full border border-transparent transition-colors whitespace-nowrap">
               ⚑ Report
            </button>
-        </div>
-
-        {/* Episode List Section - GEMBOK DIHAPUS, ANGKA BISA DIKLIK */}
-        <div className="mt-4 px-4 border-b border-[#1a1a1a] pb-4">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-white text-sm font-medium">Episode List</h3>
-            <span className="text-[#888888] text-[11px] flex items-center gap-1">Total Ep</span>
-          </div>
-          
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {/* Render Episode Boxes */}
-            {[1,2,3,4,5,6,7,8,9,10,11,12].map(ep => (
-               <button 
-                 key={ep} 
-                 onClick={() => alert("Mustahil ganti episode dari sini doang cuy! \nFitur ini butuh akses ke page.tsx buat ganti chapterUrlId.")}
-                 className={`min-w-[48px] h-[48px] rounded flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${ep === 12 ? 'bg-white text-black' : 'bg-[#1a1a1a] text-[#ccc] hover:bg-[#222]'}`}
-               >
-                 {ep}
-               </button>
-            ))}
-          </div>
         </div>
 
         {/* Synopsis Section */}
