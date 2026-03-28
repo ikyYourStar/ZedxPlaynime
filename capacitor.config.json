@@ -3,6 +3,9 @@
   "appName": "ZedxPlay",
   "webDir": "out",
   "bundledWebRuntime": false,
+  "server": {
+    "cleartext": true
+  },
   "plugins": {
     "GoogleAuth": {
       "scopes": ["profile", "email"],
