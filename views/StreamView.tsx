@@ -16,7 +16,7 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showResMenu, setShowResMenu] = useState(false);
   
-  // State biar pas buffering loadingnya keren pakai asset lu
+  // State biar pas buffering loadingnya keren
   const [isVideoLoading, setIsVideoLoading] = useState(true);
 
   // Auto-hide controls timer
@@ -161,8 +161,8 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
       
       {/* HEADER NAVBAR KECIL (Biar bisa back dari atas kalau gak di fullscreen) */}
       {!isFullscreen && (
-        <div className="absolute top-0 left-0 right-0 p-4 z-50 flex items-center bg-gradient-to-b from-black/80 to-transparent">
-           <button onClick={onBack} className="text-white hover:text-[#10b981] transition-colors">
+        <div className="absolute top-0 left-0 right-0 p-4 z-50 flex items-center bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+           <button onClick={onBack} className="text-white hover:text-[#10b981] transition-colors pointer-events-auto">
              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
            </button>
         </div>
@@ -200,22 +200,17 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
           </div>
         )}
 
-        {/* LOADING BUFFFERING (Pake aset lu: loading_bg.png muter) */}
+        {/* LOADING BUFFFERING (Balik pakai spinner murni, logo abu gede ngawur DIBUANG) */}
         {isVideoLoading && stream.selectedVideo && (
            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-             <img 
-               src="/assets/icons/loading_bg.png" 
-               alt="Loading..." 
-               className="w-12 h-12 object-contain animate-spin opacity-80"
-               onError={(e: any) => e.target.style.display='none'} 
-             />
+             <div className="w-12 h-12 border-4 border-[#10b981] border-t-transparent rounded-full animate-spin"></div>
            </div>
         )}
 
         {/* CUSTOM CONTROLS OVERLAY */}
         {stream.selectedVideo && (
           <div 
-            className={`absolute inset-0 z-30 flex flex-col justify-between transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            className={`absolute inset-0 z-30 flex flex-col transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%)' }}
           >
             {/* Top Bar - Muncul judul pas Fullscreen */}
@@ -230,25 +225,27 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
               )}
             </div>
 
-            {/* Center Play/Pause/Skip Controls */}
-            {!isVideoLoading && (
-              <div className="flex items-center justify-center gap-12 sm:gap-20">
-                <button onClick={() => skipTime(-10)} className="w-10 h-10 sm:w-14 sm:h-14 hover:scale-110 transition-transform focus:outline-none bg-black/30 rounded-full p-2">
-                  <img src="/assets/icons/rewind.png" alt="Rewind" className="w-full h-full object-contain" onError={(e: any) => e.target.style.display='none'} />
-                </button>
-                
-                <button onClick={togglePlay} className="w-14 h-14 sm:w-20 sm:h-20 hover:scale-110 transition-transform focus:outline-none bg-black/30 rounded-full p-3 shadow-lg">
-                  <img src={isPlaying ? "/assets/icons/pause.png" : "/assets/icons/play.png"} alt="Play/Pause" className="w-full h-full object-contain ml-0.5" onError={(e: any) => e.target.style.display='none'} />
-                </button>
+            {/* Center Play/Pause/Skip Controls (Sekarang beneran di TENGAH layar video) */}
+            <div className="flex-1 flex items-center justify-center w-full">
+              {!isVideoLoading && (
+                <div className="flex items-center justify-center gap-12 sm:gap-20">
+                  <button onClick={() => skipTime(-10)} className="w-10 h-10 sm:w-14 sm:h-14 hover:scale-110 transition-transform focus:outline-none bg-black/30 rounded-full p-2">
+                    <img src="/assets/icons/rewind.png" alt="Rewind" className="w-full h-full object-contain" onError={(e: any) => e.target.style.display='none'} />
+                  </button>
+                  
+                  <button onClick={togglePlay} className="w-14 h-14 sm:w-20 sm:h-20 hover:scale-110 transition-transform focus:outline-none bg-black/30 rounded-full p-3 shadow-lg">
+                    <img src={isPlaying ? "/assets/icons/pause.png" : "/assets/icons/play.png"} alt="Play/Pause" className="w-full h-full object-contain ml-0.5" onError={(e: any) => e.target.style.display='none'} />
+                  </button>
 
-                <button onClick={() => skipTime(10)} className="w-10 h-10 sm:w-14 sm:h-14 hover:scale-110 transition-transform focus:outline-none bg-black/30 rounded-full p-2">
-                  <img src="/assets/icons/forward.png" alt="Forward" className="w-full h-full object-contain" onError={(e: any) => e.target.style.display='none'} />
-                </button>
-              </div>
-            )}
+                  <button onClick={() => skipTime(10)} className="w-10 h-10 sm:w-14 sm:h-14 hover:scale-110 transition-transform focus:outline-none bg-black/30 rounded-full p-2">
+                    <img src="/assets/icons/forward.png" alt="Forward" className="w-full h-full object-contain" onError={(e: any) => e.target.style.display='none'} />
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Bottom Control Bar (Mirip referensi screenshot) */}
-            <div className="absolute bottom-0 left-0 right-0 pb-1">
+            <div className="w-full pb-1 relative">
               
               {/* Text Waktu & Setting di atas Progress Bar */}
               <div className="flex justify-between items-center px-4 mb-2">
@@ -312,7 +309,7 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
         )}
       </div>
 
-      {/* ===================== INFO DI BAWAH VIDEO (Sesuai Screenshot 121850.jpg) ===================== */}
+      {/* ===================== INFO DI BAWAH VIDEO ===================== */}
       <div className="flex flex-col w-full">
         
         {/* Avatar & Judul Row */}
@@ -357,25 +354,24 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
            </button>
         </div>
 
-        {/* Episode List Section */}
+        {/* Episode List Section - GEMBOK DIHAPUS, ANGKA BISA DIKLIK */}
         <div className="mt-4 px-4 border-b border-[#1a1a1a] pb-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-white text-sm font-medium">Episode List</h3>
-            <span className="text-[#888888] text-[11px] flex items-center gap-1">🔑 1</span>
+            <span className="text-[#888888] text-[11px] flex items-center gap-1">Total Ep</span>
           </div>
           
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {/* Render Episode Boxes Mirip Screenshot (Gembok & Aktif) */}
-            {[4,5,6,7,8,9,10,11].map(ep => (
-               <button key={ep} className="min-w-[48px] h-[48px] bg-[#1a1a1a] rounded flex flex-col items-center justify-center text-[#888] relative hover:bg-[#222] transition-colors flex-shrink-0">
-                 <span className="text-[10px] absolute top-1">🔒</span>
-                 <span className="text-xs font-bold mt-2">{ep}</span>
+            {/* Render Episode Boxes */}
+            {[1,2,3,4,5,6,7,8,9,10,11,12].map(ep => (
+               <button 
+                 key={ep} 
+                 onClick={() => alert("Mustahil ganti episode dari sini doang cuy! \nFitur ini butuh akses ke page.tsx buat ganti chapterUrlId.")}
+                 className={`min-w-[48px] h-[48px] rounded flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${ep === 12 ? 'bg-white text-black' : 'bg-[#1a1a1a] text-[#ccc] hover:bg-[#222]'}`}
+               >
+                 {ep}
                </button>
             ))}
-            {/* Episode saat ini (Aktif Putih) */}
-            <button className="min-w-[48px] h-[48px] bg-white text-black rounded flex items-center justify-center text-xs font-bold flex-shrink-0">
-              12
-            </button>
           </div>
         </div>
 
