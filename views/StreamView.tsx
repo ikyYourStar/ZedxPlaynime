@@ -93,6 +93,8 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
       if (json.success) {
         setNewComment("");
         fetchComments();
+      } else {
+        alert("Gagal kirim komentar ke database");
       }
     } catch (error) {
       alert("Error jaringan saat kirim komentar.");
@@ -157,6 +159,27 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
       } catch (err) {}
     }
   };
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (isFullscreen) {
+      intervalId = setInterval(async () => {
+        try {
+          const { type } = await ScreenOrientation.getCurrentOrientation();
+          if (type === 'landscape') {
+            await StatusBar.hide();
+          }
+        } catch (error) {}
+      }, 500);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isFullscreen]);
 
   const formatTime = (time: number) => {
     if (isNaN(time)) return "00:00";
