@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ZedxPlay</string>
+    <string name="title_activity_main">ZedxPlay</string>
+    <string name="package_name">com.zedx.zedxplay</string>
+    <string name="custom_url_scheme">com.zedx.zedxplay</string>
+</resources>
