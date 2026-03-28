@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { api } from "../lib/api";
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { StatusBar } from '@capacitor/status-bar';
 import { auth } from "../lib/firebase";
 
 export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: string, onBack: () => void }) {
@@ -33,6 +34,15 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const lockPortraitOnMount = async () => {
+      try {
+        await ScreenOrientation.lock({ orientation: 'portrait' });
+      } catch (e) {}
+    };
+    lockPortraitOnMount();
+  }, []);
+
   const fetchStreamData = async (retryAttempt = 0) => {
     if (retryAttempt === 0) setLoading(true);
     try {
@@ -57,9 +67,7 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
       if (json.success) {
         setComments(json.data);
       }
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -85,11 +93,8 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
       if (json.success) {
         setNewComment("");
         fetchComments();
-      } else {
-        alert("Gagal");
       }
     } catch (error) {
-      console.error(error);
       alert("Error jaringan saat kirim komentar.");
     } finally {
       setIsSubmitting(false);
@@ -137,25 +142,19 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
         await playerContainer?.requestFullscreen();
         setIsFullscreen(true);
         try {
+          await StatusBar.hide();
           await ScreenOrientation.lock({ orientation: 'landscape' });
-        } catch (err) {
-          console.log(err);
-        }
-      } catch (err) {
-        console.error(err);
-      }
+        } catch (err) {}
+      } catch (err) {}
     } else {
       try {
         await document.exitFullscreen();
         setIsFullscreen(false);
         try {
-          await ScreenOrientation.unlock();
-        } catch (err) {
-          console.log(err);
-        }
-      } catch (err) {
-        console.error(err);
-      }
+          await StatusBar.show();
+          await ScreenOrientation.lock({ orientation: 'portrait' });
+        } catch (err) {}
+      } catch (err) {}
     }
   };
 
