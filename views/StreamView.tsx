@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { api } from "../lib/api";
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { auth } from "../lib/firebase";
 
 export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: string, onBack: () => void }) {
   const [stream, setStream] = useState<any>(null);
@@ -8,7 +9,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // State untuk Custom Video Player
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -17,11 +17,21 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showResMenu, setShowResMenu] = useState(false);
   
-  // State biar pas buffering loadingnya keren
   const [isVideoLoading, setIsVideoLoading] = useState(true);
 
-  // Auto-hide controls timer
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const fetchStreamData = async (retryAttempt = 0) => {
     if (retryAttempt === 0) setLoading(true);
@@ -40,11 +50,52 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
     }
   };
 
+  const fetchComments = async () => {
+    try {
+      const res = await fetch(`http://165.22.253.30:8010/api/comments/${chapterUrlId}`);
+      const json = await res.json();
+      if (json.success) {
+        setComments(json.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchStreamData();
+    fetchComments();
   }, [chapterUrlId, resolution]);
 
-  // Player Handlers
+  const handlePostComment = async () => {
+    if (!newComment.trim() || !user) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`http://165.22.253.30:8010/api/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chapter_id: chapterUrlId,
+          user_name: user.displayName || "Wibu Anonim",
+          user_photo: user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'A'}&background=10b981&color=fff`,
+          comment_text: newComment
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setNewComment("");
+        fetchComments();
+      } else {
+        alert("Gagal");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error jaringan saat kirim komentar.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -86,26 +137,24 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
         await playerContainer?.requestFullscreen();
         setIsFullscreen(true);
         try {
-          // Paksa layar jadi Landscape pakai Plugin Native Capacitor
           await ScreenOrientation.lock({ orientation: 'landscape' });
         } catch (err) {
-          console.log("Plugin ScreenOrientation gagal jalan:", err);
+          console.log(err);
         }
       } catch (err) {
-        console.error("Gagal fullscreen atau putar layar:", err);
+        console.error(err);
       }
     } else {
       try {
         await document.exitFullscreen();
         setIsFullscreen(false);
         try {
-          // Lepas paksaan, balik ke Portrait pakai Plugin Native Capacitor
           await ScreenOrientation.unlock();
         } catch (err) {
-          console.log("Plugin ScreenOrientation gagal unlock:", err);
+          console.log(err);
         }
       } catch (err) {
-        console.error("Gagal keluar fullscreen:", err);
+        console.error(err);
       }
     }
   };
@@ -117,7 +166,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
     return `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
   };
 
-  // Logic SAKTI buat nanganin Togle Muncul/Hilang & Auto-hide
   const resetHideTimer = () => {
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     if (videoRef.current && !videoRef.current.paused) {
@@ -166,7 +214,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
   return (
     <div className="w-full flex flex-col pb-12 bg-black min-h-screen">
       
-      {/* HEADER NAVBAR KECIL (Biar bisa back dari atas kalau gak di fullscreen) */}
       {!isFullscreen && (
         <div className="absolute top-0 left-0 right-0 p-4 z-50 flex items-center bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
            <button onClick={onBack} className="text-white hover:text-[#10b981] transition-colors pointer-events-auto">
@@ -181,7 +228,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
         </div>
       )}
 
-      {/* CUSTOM VIDEO PLAYER CONTAINER */}
       <div 
         id="video-player-container"
         className="relative w-full aspect-video bg-black overflow-hidden group cursor-pointer select-none"
@@ -200,7 +246,7 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
             onWaiting={() => setIsVideoLoading(true)}
             onCanPlay={() => setIsVideoLoading(false)}
             playsInline
-            controls={false} // MATIKAN CONTROLS BAWAAN BROWSER
+            controls={false}
           ></video>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[#666666] relative z-10 bg-black">
@@ -208,20 +254,17 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
           </div>
         )}
 
-        {/* LOADING BUFFFERING */}
         {isVideoLoading && stream.selectedVideo && (
            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
              <div className="w-12 h-12 border-4 border-[#10b981] border-t-transparent rounded-full animate-spin"></div>
            </div>
         )}
 
-        {/* CUSTOM CONTROLS OVERLAY */}
         {stream.selectedVideo && (
           <div 
             className={`absolute inset-0 z-30 flex flex-col transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%)' }}
           >
-            {/* Top Bar - Muncul judul pas Fullscreen */}
             <div className="p-4 flex items-center gap-3">
               {isFullscreen && (
                 <>
@@ -233,7 +276,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
               )}
             </div>
 
-            {/* Center Play/Pause/Skip Controls */}
             <div className="flex-1 flex items-center justify-center w-full">
               {!isVideoLoading && (
                 <div className="flex items-center justify-center gap-12 sm:gap-20">
@@ -252,10 +294,7 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
               )}
             </div>
 
-            {/* Bottom Control Bar */}
             <div className="w-full pb-1 relative">
-              
-              {/* Text Waktu & Setting di atas Progress Bar */}
               <div className="flex justify-between items-center px-4 mb-2">
                 <div className="text-white text-xs font-medium font-mono drop-shadow-md">
                   {formatTime(currentTime)} / {formatTime(duration)}
@@ -272,7 +311,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
                 </div>
               </div>
 
-              {/* Garis Progress Bar Merah Memanjang */}
               <div className="px-2" onClick={(e) => e.stopPropagation()}>
                 <input 
                   type="range" 
@@ -288,7 +326,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
               </div>
             </div>
             
-            {/* Menu Pop-up Resolusi (Mengambang) */}
             {showResMenu && (
               <div className="absolute bottom-14 right-4 bg-[#1a1a1a]/95 backdrop-blur-md border border-[#333] rounded-md p-2 flex flex-col min-w-[150px] shadow-2xl z-40" onClick={(e) => e.stopPropagation()}>
                 <div className="text-[10px] text-[#888] font-bold uppercase mb-2 px-2">Pilihan Kualitas Video</div>
@@ -317,10 +354,8 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
         )}
       </div>
 
-      {/* ===================== INFO DI BAWAH VIDEO ===================== */}
       <div className="flex flex-col w-full">
         
-        {/* Avatar & Judul Row */}
         <div className="flex items-center gap-3 mt-4 px-4">
           <img 
              src={stream.coverUrl || "/assets/placeholder/pc.png"} 
@@ -336,7 +371,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
           </div>
         </div>
 
-        {/* Buttons Row 1 (Like, Dislike, Quality, Download) */}
         <div className="flex gap-2 mt-4 px-4 overflow-x-auto no-scrollbar pb-1">
            <button className="flex items-center gap-2 bg-[#1a1a1a] hover:bg-[#222] text-[#ccc] text-[11px] font-medium py-2 px-4 rounded-full border border-transparent transition-colors whitespace-nowrap">
               👍 {stream.likeCount || "343"}
@@ -352,7 +386,6 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
            </button>
         </div>
 
-        {/* Buttons Row 2 (Share, Report) */}
         <div className="flex gap-2 mt-2 px-4 overflow-x-auto no-scrollbar pb-4 border-b border-[#1a1a1a]">
            <button className="flex items-center gap-2 bg-[#1a1a1a] hover:bg-[#222] text-[#ccc] text-[11px] font-medium py-2 px-4 rounded-full border border-transparent transition-colors whitespace-nowrap">
               ➦ Share
@@ -362,21 +395,68 @@ export default function StreamView({ chapterUrlId, onBack }: { chapterUrlId: str
            </button>
         </div>
 
-        {/* Synopsis Section */}
-        <div className="px-4 mt-4 mb-8">
+        <div className="px-4 mt-4 mb-2">
           <p className="text-[#888888] text-[11px] leading-relaxed line-clamp-3">
             {stream.sinopsis || "Saksikan petualangan seru ini hanya di ZedxPlay. Jangan lupa untuk mengikuti aturan komunitas kami dan nikmati kualitas terbaik tanpa batas."}
             <span className="text-[#3b82f6] cursor-pointer ml-1">Selengkapnya ▼</span>
           </p>
-          <div className="mt-4 p-3 bg-[#121212] rounded flex items-center gap-2 border border-[#1a1a1a]">
-            <span className="text-[#888888] text-[10px]">
-              Jangan lupa untuk membuat komentar yang sopan dan santun dan mengikuti <span className="text-[#3b82f6]">Aturan Komunitas</span> kami
-            </span>
+        </div>
+
+        <div className="px-4 mt-6 mb-8 pt-6 border-t border-[#1a1a1a]">
+          <h3 className="text-white text-sm font-medium mb-4">{comments.length} Comments</h3>
+          
+          <div className="flex gap-3 mb-8">
+            <img 
+              src={user?.photoURL || "/assets/placeholder/pc.png"} 
+              alt="User" 
+              className="w-8 h-8 rounded-full object-cover border border-[#333]"
+            />
+            <div className="flex-1 flex flex-col gap-2">
+              <input 
+                type="text" 
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder={user ? "Tambahkan komentar..." : "Login dulu buat komentar cuy..."} 
+                className="w-full bg-[#0a0a0a] border-b border-[#333] focus:border-[#10b981] text-xs text-white px-1 py-2 outline-none transition-colors"
+                disabled={isSubmitting || !user}
+              />
+              <div className="flex justify-end">
+                <button 
+                  onClick={handlePostComment}
+                  disabled={isSubmitting || !newComment.trim() || !user}
+                  className="bg-[#1a1a1a] hover:bg-[#222] disabled:opacity-50 text-white border border-[#333] text-[11px] font-bold py-1.5 px-4 rounded-full transition-colors mt-1"
+                >
+                  {isSubmitting ? 'Mengirim...' : 'Kirim'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-5">
+            {comments.map((c: any) => (
+              <div key={c.id} className="flex gap-3">
+                <img src={c.user_photo} alt={c.user_name} className="w-8 h-8 rounded-full object-cover border border-[#222]" />
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-white text-[11px] font-bold">{c.user_name}</span>
+                    <span className="text-[#666] text-[9px]">
+                      {new Date(c.created_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}
+                    </span>
+                  </div>
+                  <p className="text-[#ccc] text-[11px] mt-1 leading-relaxed">{c.comment_text}</p>
+                </div>
+              </div>
+            ))}
+            
+            {comments.length === 0 && (
+              <div className="text-[#666] text-xs text-center py-6 bg-[#0a0a0a] rounded border border-[#1a1a1a]">
+                Belum ada komentar. Jadilah yang pertama!
+              </div>
+            )}
           </div>
         </div>
 
       </div>
-
     </div>
   );
 }
